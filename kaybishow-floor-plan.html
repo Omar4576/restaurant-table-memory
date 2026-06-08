@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kaybishow House — Table Status</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0f0f; color: #f0ece4; font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; padding: 24px 16px; }
+    .container { max-width: 680px; margin: 0 auto; }
+    header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .logo { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+    .logo span { color: #c8a96e; }
+    .subtitle { font-size: 13px; color: #666; margin-top: 3px; }
+    .legend { display: flex; gap: 14px; align-items: center; padding-top: 4px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
+    .controls label { font-size: 12px; color: #666; display: flex; flex-direction: column; gap: 5px; }
+    .controls input, .controls select {
+      font-size: 14px; padding: 8px 12px;
+      border-radius: 8px; border: 1px solid #2a2a2a;
+      background: #1a1a1a; color: #f0ece4;
+      outline: none;
+    }
+    .controls input:focus, .controls select:focus { border-color: #c8a96e; }
+    .refresh-btn {
+      font-size: 13px; padding: 8px 16px;
+      border-radius: 8px; border: 1px solid #2a2a2a;
+      background: #1a1a1a; color: #c8a96e;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .refresh-btn:hover { background: #222; }
+    .floor { background: #1a1a1a; border-radius: 12px; padding: 20px; border: 1px solid #2a2a2a; }
+    .zone-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 12px; }
+    .tables-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .table-card {
+      background: #111; border-radius: 10px;
+      border: 1.5px solid #1D9E75;
+      padding: 14px 16px; cursor: pointer;
+      min-width: 100px; text-align: center;
+      user-select: none; transition: transform 0.1s, border-color 0.2s;
+    }
+    .table-card:hover { transform: scale(1.04); }
+    .table-card:active { transform: scale(0.96); }
+    .table-card.filled { border-color: #E24B4A; }
+    .table-card.vapi { border-color: #7F77DD; }
+    .table-card.loading { opacity: 0.4; pointer-events: none; }
+    .tname { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #f0ece4; }
+    .tseats { font-size: 11px; color: #555; margin-bottom: 8px; }
+    .tstatus { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 999px; display: inline-block; background: #0f2e1e; color: #1D9E75; }
+    .table-card.filled .tstatus { background: #2e0f0f; color: #E24B4A; }
+    .table-card.vapi .tstatus { background: #1a1830; color: #7F77DD; }
+    .divider { border: none; border-top: 1px solid #222; margin: 0 0 20px; }
+    .status-bar {
+      border-radius: 8px; border: 1px solid #2a2a2a;
+      padding: 12px 16px; font-size: 13px; color: #666;
+      margin-top: 16px; background: #1a1a1a;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .status-bar.ok { border-color: #1D9E75; color: #1D9E75; }
+    .status-bar.err { border-color: #E24B4A; color: #E24B4A; }
+    .status-bar.info { border-color: #7F77DD; color: #7F77DD; }
+    .res-panel { margin-top: 20px; background: #1a1a1a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden; }
+    .res-header { padding: 14px 16px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #444; border-bottom: 1px solid #222; }
+    .res-list { padding: 0; }
+    .res-item { padding: 12px 16px; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .res-item:last-child { border-bottom: none; }
+    .res-name { font-size: 14px; font-weight: 500; color: #f0ece4; }
+    .res-detail { font-size: 12px; color: #555; margin-top: 2px; }
+    .res-badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; background: #1a1830; color: #7F77DD; white-space: nowrap; }
+    .empty { padding: 20px 16px; font-size: 13px; color: #444; text-align: center; }
+    @media (max-width: 480px) { .table-card { min-width: 85px; padding: 10px 12px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <div class="logo">Kaybishow <span>House</span></div>
+        <div class="subtitle">Staff floor plan — live table status</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot" style="background:#1D9E75;"></div>Open</div>
+        <div class="legend-item"><div class="dot" style="background:#7F77DD;"></div>Booked</div>
+        <div class="legend-item"><div class="dot" style="background:#E24B4A;"></div>Filled</div>
+      </div>
+    </header>
+
+    <div class="controls">
+      <label>Date <input type="date" id="selDate"></label>
+      <label>Time <select id="selTime"></select></label>
+      <button class="refresh-btn" onclick="loadStatus()">↻ Refresh</button>
+    </div>
+
+    <div class="floor">
+      <div class="zone-label">2-seat tables</div>
+      <div class="tables-grid" id="zone2"></div>
+      <hr class="divider">
+      <div class="zone-label">4-seat tables</div>
+      <div class="tables-grid" id="zone4"></div>
+      <hr class="divider">
+      <div class="zone-label">Large tables</div>
+      <div class="tables-grid" id="zoneLarge"></div>
+    </div>
+
+    <div class="status-bar" id="statusBar">Loading live data...</div>
+
+    <div class="res-panel">
+      <div class="res-header">Reservations for selected date</div>
+      <div class="res-list" id="resList"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+
+  <script>
+    const GET_URL = "https://o595a.app.n8n.cloud/webhook/restaurant-status";
+    const POST_URL = "https://o595a.app.n8n.cloud/webhook/restaurant-table-update";
+
+    const TABLES = [
+      { id: "T2-1", seats: 2, zone: "zone2" },
+      { id: "T2-2", seats: 2, zone: "zone2" },
+      { id: "T4-1", seats: 4, zone: "zone4" },
+      { id: "T4-2", seats: 4, zone: "zone4" },
+      { id: "T6-1", seats: 6, zone: "zoneLarge" },
+      { id: "T8-1", seats: 8, zone: "zoneLarge" },
+    ];
+
+    const dateEl = document.getElementById("selDate");
+    const timeEl = document.getElementById("selTime");
+    const today = new Date().toISOString().slice(0, 10);
+    dateEl.value = today;
+
+    for (let m = 9 * 60; m <= 22 * 60; m += 30) {
+      const h = String(Math.floor(m / 60)).padStart(2, "0");
+      const min = String(m % 60).padStart(2, "0");
+      const opt = document.createElement("option");
+      opt.value = `${h}:${min}`;
+      opt.textContent = `${h}:${min}`;
+      if (h === "19" && min === "00") opt.selected = true;
+      timeEl.appendChild(opt);
+    }
+
+    dateEl.addEventListener("change", () => { loadStatus(); });
+    timeEl.addEventListener("change", () => { renderAll(); });
+
+    function setStatus(msg, type) {
+      const bar = document.getElementById("statusBar");
+      bar.textContent = msg;
+      bar.className = "status-bar" + (type ? " " + type : "");
+    }
+
+    function minutesFromTime(t) {
+      const parts = String(t || "").split(":").map(Number);
+      if (parts.length < 2) return null;
+      return parts[0] * 60 + parts[1];
+    }
+
+    function overlaps(aS, aE, bS, bE) { return aS < bE && bS < aE; }
+
+    function isBooked(tableId, date, time, reservations, walkIns) {
+      const start = minutesFromTime(time);
+      if (start === null) return { booked: false };
+      const end = start + 90;
+      const all = [...(reservations || []), ...(walkIns || [])];
+      const hit = all.find(r => {
+        if (r.status === "cancelled" || r.status === "open") return false;
+        if (r.date !== date || r.tableId !== tableId) return false;
+        const os = minutesFromTime(r.time);
+        if (os === null) return false;
+        const oe = os + (r.durationMinutes || 90);
+        return overlaps(start, end, os, oe);
+      });
+      return hit ? { booked: true, source: hit.source } : { booked: false };
+    }
+
+    let liveReservations = [];
+    let liveWalkIns = [];
+
+    function renderAll() {
+      const date = dateEl.value;
+      const time = timeEl.value;
+      TABLES.forEach(t => {
+        const el = document.getElementById("card-" + t.id);
+        if (!el) return;
+        const check = isBooked(t.id, date, time, liveReservations, liveWalkIns);
+        if (check.booked && check.source === "vapi") {
+          el.className = "table-card vapi";
+          el.querySelector(".tstatus").textContent = "Booked";
+        } else if (check.booked) {
+          el.className = "table-card filled";
+          el.querySelector(".tstatus").textContent = "Filled";
+        } else {
+          el.className = "table-card";
+          el.querySelector(".tstatus").textContent = "Open";
+        }
+      });
+      renderResList(date);
+    }
+
+    function renderResList(date) {
+      const list = document.getElementById("resList");
+      const todays = liveReservations.filter(r => r.date === date && r.status !== "cancelled");
+      if (todays.length === 0) {
+        list.innerHTML = `<div class="empty">No reservations for ${date}</div>`;
+        return;
+      }
+      list.innerHTML = todays.sort((a,b) => a.time.localeCompare(b.time)).map(r => `
+        <div class="res-item">
+          <div>
+            <div class="res-name">${r.name || "Guest"}</div>
+            <div class="res-detail">${r.time} · Party of ${r.partySize} · ${r.tableId}</div>
+          </div>
+          <div class="res-badge">VAPI</div>
+        </div>
+      `).join("");
+    }
+
+    async function loadStatus() {
+      setStatus("Fetching live data...", "info");
+      try {
+        const res = await fetch(GET_URL);
+        const data = await res.json();
+        liveReservations = data.reservations || [];
+        liveWalkIns = data.walkIns || [];
+        renderAll();
+        const count = liveReservations.filter(r => r.date === dateEl.value).length;
+        setStatus(`Live — ${count} reservation(s) on ${dateEl.value}. Last updated ${new Date().toLocaleTimeString()}.`, "ok");
+      } catch(e) {
+        setStatus("Could not connect to n8n — make sure workflow is published.", "err");
+      }
+    }
+
+    function buildCards() {
+      TABLES.forEach(t => {
+        const zone = document.getElementById(t.zone);
+        const card = document.createElement("div");
+        card.className = "table-card";
+        card.id = "card-" + t.id;
+        card.innerHTML = `<div class="tname">${t.id}</div><div class="tseats">${t.seats} seat${t.seats > 1 ? "s" : ""}</div><div class="tstatus">Open</div>`;
+        card.addEventListener("click", () => toggleTable(t.id));
+        zone.appendChild(card);
+      });
+    }
+
+    async function toggleTable(id) {
+      const date = dateEl.value;
+      const time = timeEl.value;
+      if (!date || !time) { setStatus("Select a date and time first.", "err"); return; }
+      const card = document.getElementById("card-" + id);
+      const isFilled = card.classList.contains("filled") || card.classList.contains("vapi");
+      const newStatus = isFilled ? "open" : "filled";
+      card.classList.add("loading");
+      setStatus(`Updating ${id}...`);
+      try {
+        const res = await fetch(POST_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tableId: id, status: newStatus, date, time, timestamp: new Date().toISOString() })
+        });
+        if (res.ok) {
+          if (newStatus === "filled") {
+            liveWalkIns.push({ tableId: id, date, time, durationMinutes: 90, status: "filled", source: "floor-plan" });
+          } else {
+            liveWalkIns = liveWalkIns.filter(w => !(w.tableId === id && w.date === date && w.time === time));
+            liveReservations = liveReservations.filter(r => !(r.tableId === id && r.date === date));
+          }
+          renderAll();
+          card.classList.remove("loading");
+          setStatus(`${id} marked ${newStatus} on ${date} at ${time} ✓`, "ok");
+        } else {
+          card.classList.remove("loading");
+          setStatus(`Error ${res.status} — try again.`, "err");
+        }
+      } catch(e) {
+        card.classList.remove("loading");
+        setStatus("Could not reach n8n.", "err");
+      }
+    }
+
+    buildCards();
+    loadStatus();
+    setInterval(loadStatus, 30000);
+  </script>
+</body>
+</html>
