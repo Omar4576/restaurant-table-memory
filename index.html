@@ -1,417 +1,589 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kaybishow House — Table Status</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0a0a0a; color: #f0ece4; font-family: system-ui, -apple-system, sans-serif; min-height: 100vh; padding: 28px 20px; }
-    .page { max-width: 960px; margin: 0 auto; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kaybishow House — Staff Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .topbar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-    .logo { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
-    .logo-accent { color: #c8a96e; }
-    .subtitle { font-size: 12px; color: #555; margin-top: 4px; }
-    .legend { display: flex; gap: 16px; align-items: center; padding-top: 6px; flex-wrap: wrap; }
-    .leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  :root {
+    --gold: #c8a86a;
+    --gold-dim: rgba(200,168,106,0.15);
+    --gold-border: rgba(200,168,106,0.3);
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #161616;
+    --bg4: #1c1c1c;
+    --text: #e8e0d0;
+    --text-muted: #7a6e5e;
+    --text-dim: #4a4030;
+    --open: #4caf88;
+    --open-bg: rgba(76,175,136,0.1);
+    --open-border: rgba(76,175,136,0.3);
+    --booked: #7b8fcc;
+    --booked-bg: rgba(123,143,204,0.1);
+    --booked-border: rgba(123,143,204,0.3);
+    --filled: #cc7766;
+    --filled-bg: rgba(204,119,102,0.1);
+    --filled-border: rgba(204,119,102,0.3);
+    --border: rgba(255,255,255,0.06);
+    --radius: 10px;
+  }
 
-    .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
-    .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
-    .ctrl-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.08em; }
-    .controls input[type=date], .controls select {
-      font-size: 13px; padding: 8px 12px;
-      border-radius: 8px; border: 1px solid #222;
-      background: #151515; color: #f0ece4; outline: none;
-    }
-    .controls input[type=date]:focus, .controls select:focus { border-color: #c8a96e; }
-    .refresh-btn {
-      font-size: 13px; padding: 8px 16px;
-      border-radius: 8px; border: 1px solid #222;
-      background: #151515; color: #c8a96e; cursor: pointer;
-    }
-    .refresh-btn:hover { background: #1c1c1c; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; }
 
-    .main-grid { display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
-    @media (max-width: 680px) { .main-grid { grid-template-columns: 1fr; } }
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+  }
+  .hero-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+    opacity: 0.4;
+    display: block;
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.9) 100%);
+  }
+  .hero-text {
+    position: absolute; bottom: 28px; left: 32px;
+  }
+  .hero-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; font-weight: 600;
+    color: #f5ede0; letter-spacing: 0.02em;
+  }
+  .hero-text p {
+    font-size: 11px; color: #a89880;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .legend {
+    position: absolute; top: 20px; right: 20px;
+    display: flex; gap: 14px; align-items: center;
+    background: rgba(10,10,10,0.65);
+    padding: 8px 16px; border-radius: 20px;
+    border: 0.5px solid var(--border);
+    backdrop-filter: blur(4px);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a89880; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-open { background: var(--open); }
+  .dot-booked { background: var(--booked); }
+  .dot-filled { background: var(--filled); }
 
-    .floor-plan {
-      background: #111; border-radius: 14px;
-      border: 1px solid #1e1e1e; padding: 20px;
-    }
-    .floor-title {
-      font-size: 10px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.1em; color: #444; margin-bottom: 14px;
-    }
-    .floor-plan svg { display: block; width: 100%; }
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex; align-items: flex-end; gap: 14px;
+    padding: 14px 28px;
+    background: var(--bg2);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .ctrl { display: flex; flex-direction: column; gap: 4px; }
+  .ctrl label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+  .ctrl input, .ctrl select {
+    background: var(--bg3); border: 0.5px solid rgba(255,255,255,0.1);
+    color: var(--text); padding: 7px 11px; border-radius: 7px;
+    font-size: 13px; font-family: 'Inter', sans-serif;
+    outline: none; cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .ctrl input:focus, .ctrl select:focus { border-color: var(--gold-border); }
+  .ctrl select option { background: var(--bg3); }
+  .refresh-btn {
+    margin-left: auto;
+    background: var(--gold-dim); border: 0.5px solid var(--gold-border);
+    color: var(--gold); padding: 8px 18px; border-radius: 7px;
+    font-size: 12px; font-family: 'Inter', sans-serif;
+    cursor: pointer; letter-spacing: 0.06em;
+    transition: background 0.2s;
+  }
+  .refresh-btn:hover { background: rgba(200,168,106,0.25); }
 
-    .sidebar { display: flex; flex-direction: column; gap: 12px; }
+  /* ── MAIN LAYOUT ── */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    min-height: calc(100vh - 220px - 53px - 36px);
+  }
 
-    .stat-card {
-      background: #111; border-radius: 12px;
-      border: 1px solid #1e1e1e; padding: 16px 18px;
-    }
-    .stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
-    .stat-value { font-size: 32px; font-weight: 600; color: #f0ece4; line-height: 1; }
-    .stat-sub { font-size: 11px; color: #444; margin-top: 4px; }
+  /* ── FLOOR PLAN ── */
+  .floor { padding: 22px 28px; border-right: 0.5px solid var(--border); }
+  .sec-label {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-label::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
 
-    .res-card {
-      background: #111; border-radius: 12px;
-      border: 1px solid #1e1e1e; overflow: hidden; flex: 1;
-    }
-    .res-head {
-      padding: 12px 16px; font-size: 10px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.08em; color: #444;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    .res-item {
-      padding: 12px 16px; border-bottom: 1px solid #161616;
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    }
-    .res-item:last-child { border-bottom: none; }
-    .res-name { font-size: 13px; font-weight: 500; color: #f0ece4; }
-    .res-detail { font-size: 11px; color: #555; margin-top: 2px; }
-    .res-badge {
-      font-size: 10px; padding: 3px 9px; border-radius: 999px;
-      background: #1a1830; color: #7F77DD; white-space: nowrap; font-weight: 500;
-    }
-    .empty { padding: 20px 16px; font-size: 12px; color: #444; text-align: center; }
+  .zone { margin-bottom: 24px; }
+  .zone-name {
+    font-size: 10px; color: #5a5040;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .tables-row { display: flex; gap: 12px; flex-wrap: wrap; }
 
-    .status-bar {
-      border-radius: 8px; border: 1px solid #1e1e1e;
-      padding: 10px 14px; font-size: 12px; color: #555; margin-top: 14px;
-    }
-    .status-bar.ok { border-color: #1D9E75; color: #1D9E75; }
-    .status-bar.err { border-color: #E24B4A; color: #E24B4A; }
-    .status-bar.info { border-color: #7F77DD; color: #7F77DD; }
+  .table-card {
+    width: 108px; height: 96px;
+    border-radius: var(--radius);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: transform 0.2s, border-color 0.2s, background 0.2s;
+    user-select: none; position: relative;
+    gap: 3px;
+  }
+  .table-card:hover { transform: translateY(-3px); }
+  .table-card:active { transform: scale(0.97); }
 
-    .table-group { cursor: pointer; }
-    .table-group:hover rect.table-body { opacity: 0.85; }
-    .table-group:active rect.table-body { opacity: 0.65; }
-  </style>
+  .table-card.open   { background: #0b1e14; border-color: #2a5c3f; }
+  .table-card.open:hover { border-color: #3d8a5c; background: #0f2419; }
+  .table-card.booked { background: #0e1228; border-color: #2a3460; }
+  .table-card.booked:hover { border-color: #4a5a9a; background: #111630; }
+  .table-card.filled { background: #1d0c09; border-color: #5c2a20; }
+  .table-card.filled:hover { border-color: #8a3d2a; background: #221009; }
+
+  .table-id { font-size: 13px; font-weight: 500; }
+  .table-card.open   .table-id { color: #5ec98a; }
+  .table-card.booked .table-id { color: #7b8fcc; }
+  .table-card.filled .table-id { color: #cc7766; }
+
+  .table-seats { font-size: 10px; color: #5a5040; }
+
+  .table-badge {
+    font-size: 9px; letter-spacing: 0.07em;
+    text-transform: uppercase; padding: 2px 8px;
+    border-radius: 10px; margin-top: 2px;
+  }
+  .table-card.open   .table-badge { background: var(--open-bg);   color: var(--open);   }
+  .table-card.booked .table-badge { background: var(--booked-bg); color: var(--booked); }
+  .table-card.filled .table-badge { background: var(--filled-bg); color: var(--filled); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--bg2);
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 220px - 53px - 36px);
+  }
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 20px;
+  }
+  .stat {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: 8px; padding: 14px;
+  }
+  .stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; color: #f5ede0;
+  }
+  .stat-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .res-list { display: flex; flex-direction: column; gap: 7px; }
+  .res-item {
+    background: var(--bg3);
+    border: 0.5px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+    transition: border-color 0.2s;
+  }
+  .res-item:hover { border-color: rgba(255,255,255,0.1); }
+  .res-item.cancelled { opacity: 0.38; pointer-events: none; }
+
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--booked-bg); border: 0.5px solid var(--booked-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--booked); font-weight: 500;
+    flex-shrink: 0;
+  }
+  .res-info { flex: 1; min-width: 0; }
+  .res-name { font-size: 12px; color: #d4c8b8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .res-meta { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .vapi-tag {
+    font-size: 9px; background: var(--booked-bg);
+    color: var(--booked); padding: 2px 7px;
+    border-radius: 8px; white-space: nowrap; flex-shrink: 0;
+  }
+  .x-btn {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: var(--filled-bg); border: 0.5px solid var(--filled-border);
+    color: var(--filled); display: flex; align-items: center;
+    justify-content: center; cursor: pointer; font-size: 13px;
+    flex-shrink: 0; transition: background 0.2s;
+  }
+  .x-btn:hover { background: rgba(204,119,102,0.25); }
+
+  .empty { font-size: 12px; color: var(--text-dim); text-align: center; padding: 24px 0; }
+
+  /* ── LIVE BAR ── */
+  .livebar {
+    padding: 9px 28px;
+    background: var(--bg2);
+    border-top: 0.5px solid var(--border);
+    font-size: 10px; color: var(--text-dim);
+    display: flex; align-items: center; gap: 8px;
+    letter-spacing: 0.05em;
+  }
+  .pulse {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--open);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+  /* ── MODAL ── */
+  .backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.72);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.18s;
+  }
+  .backdrop.on { opacity: 1; pointer-events: all; }
+  .modal {
+    background: #1e1e1e;
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 14px; padding: 26px;
+    width: 300px; max-width: 92vw;
+    transform: scale(0.96);
+    transition: transform 0.18s;
+  }
+  .backdrop.on .modal { transform: scale(1); }
+  .modal h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px; color: #f5ede0; margin-bottom: 6px;
+  }
+  .modal p { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+  .modal-btns { display: flex; gap: 8px; }
+  .mbtn {
+    flex: 1; padding: 10px; border-radius: 8px;
+    font-size: 12px; font-family: 'Inter', sans-serif;
+    cursor: pointer; border: 0.5px solid transparent;
+    transition: background 0.2s;
+  }
+  .mbtn.cancel-yes { background: var(--filled-bg); border-color: var(--filled-border); color: var(--filled); }
+  .mbtn.cancel-yes:hover { background: rgba(204,119,102,0.28); }
+  .mbtn.dismiss { background: var(--bg3); border-color: rgba(255,255,255,0.1); color: #a89880; }
+  .mbtn.dismiss:hover { background: var(--bg4); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(70px);
+    background: #1e1e1e; border: 0.5px solid var(--open-border);
+    color: var(--open); padding: 10px 22px;
+    border-radius: 20px; font-size: 12px;
+    transition: transform 0.28s; z-index: 300;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
 </head>
 <body>
-<div class="page">
 
-  <div class="topbar">
-    <div>
-      <div class="logo">Kaybishow <span class="logo-accent">House</span></div>
-      <div class="subtitle">Staff floor plan — live table status</div>
-    </div>
-    <div class="legend">
-      <div class="leg"><div class="dot" style="background:#1D9E75;"></div>Open</div>
-      <div class="leg"><div class="dot" style="background:#7F77DD;"></div>Booked</div>
-      <div class="leg"><div class="dot" style="background:#E24B4A;"></div>Filled</div>
-    </div>
+<!-- HERO -->
+<div class="hero">
+  <img class="hero-img"
+    src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80&auto=format"
+    alt="restaurant interior" />
+  <div class="hero-overlay"></div>
+  <div class="hero-text">
+    <h1>Kaybishow House</h1>
+    <p>Staff floor plan — live table status</p>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="dot dot-open"></span>Open</div>
+    <div class="legend-item"><span class="dot dot-booked"></span>Booked</div>
+    <div class="legend-item"><span class="dot dot-filled"></span>Filled</div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="ctrl">
+    <label>Date</label>
+    <input type="date" id="dateInput" />
+  </div>
+  <div class="ctrl">
+    <label>Time</label>
+    <select id="timeInput">
+      <option>12:00</option><option>13:00</option><option>14:00</option>
+      <option>15:00</option><option>16:00</option><option>17:00</option>
+      <option>18:00</option><option>19:00</option><option>20:00</option>
+      <option>21:00</option><option>22:00</option>
+    </select>
+  </div>
+  <button class="refresh-btn" onclick="fetchData()">↻ Refresh</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- FLOOR -->
+  <div class="floor">
+    <div class="sec-label">Floor plan — click any table to toggle</div>
+    <div id="floorPlan"></div>
   </div>
 
-  <div class="controls">
-    <div class="ctrl-group">
-      <span class="ctrl-label">Date</span>
-      <input type="date" id="selDate">
-    </div>
-    <div class="ctrl-group">
-      <span class="ctrl-label">Time</span>
-      <select id="selTime"></select>
-    </div>
-    <div class="ctrl-group" style="justify-content:flex-end;">
-      <button class="refresh-btn" onclick="loadStatus()">↻ Refresh</button>
-    </div>
-  </div>
-
-  <div class="main-grid">
-    <div>
-      <div class="floor-plan">
-        <div class="floor-title">Floor plan — click any table to toggle</div>
-        <svg viewBox="0 0 520 480" xmlns="http://www.w3.org/2000/svg">
-
-          <!-- Room outline -->
-          <rect x="12" y="12" width="496" height="456" rx="8" fill="none" stroke="#1e1e1e" stroke-width="1" stroke-dasharray="5 4"/>
-
-          <!-- Zone labels -->
-          <text x="30" y="42" font-size="9" fill="#333" font-family="system-ui" font-weight="600" letter-spacing="0.1em">WINDOW SEATS</text>
-          <text x="30" y="195" font-size="9" fill="#333" font-family="system-ui" font-weight="600" letter-spacing="0.1em">MAIN FLOOR</text>
-          <text x="30" y="360" font-size="9" fill="#333" font-family="system-ui" font-weight="600" letter-spacing="0.1em">PRIVATE DINING</text>
-
-          <!-- Zone dividers -->
-          <line x1="22" y1="170" x2="498" y2="170" stroke="#1e1e1e" stroke-width="0.5" stroke-dasharray="4 3"/>
-          <line x1="22" y1="335" x2="498" y2="335" stroke="#1e1e1e" stroke-width="0.5" stroke-dasharray="4 3"/>
-
-          <!-- Entrance -->
-          <rect x="210" y="455" width="100" height="13" rx="3" fill="#151515" stroke="#2a2a2a" stroke-width="0.5"/>
-          <text x="260" y="465" font-size="8" fill="#444" font-family="system-ui" text-anchor="middle" letter-spacing="0.06em">ENTRANCE</text>
-
-          <!-- Bar counter -->
-          <rect x="370" y="50" width="118" height="36" rx="5" fill="#151515" stroke="#2a2a2a" stroke-width="0.5"/>
-          <text x="429" y="73" font-size="10" fill="#555" font-family="system-ui" font-weight="600" text-anchor="middle" letter-spacing="0.06em">BAR</text>
-
-          <!-- Wait area -->
-          <rect x="370" y="100" width="118" height="60" rx="5" fill="#111" stroke="#1e1e1e" stroke-width="0.5" stroke-dasharray="3 2"/>
-          <text x="429" y="134" font-size="9" fill="#444" font-family="system-ui" text-anchor="middle" letter-spacing="0.05em">WAIT AREA</text>
-
-          <!-- T2-1 -->
-          <g class="table-group" id="svg-T2-1" onclick="toggleTable('T2-1')">
-            <rect class="table-body" x="30" y="52" width="80" height="100" rx="8" fill="#0a2218" stroke="#1D9E75" stroke-width="1.5"/>
-            <circle cx="70" cy="52" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="70" cy="152" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="30" cy="85" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="110" cy="85" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <text x="70" y="96" font-size="12" font-weight="600" fill="#1D9E75" font-family="system-ui" text-anchor="middle">T2-1</text>
-            <text x="70" y="111" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" opacity="0.6">2 seats</text>
-            <text x="70" y="130" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" id="svg-status-T2-1">Open</text>
-          </g>
-
-          <!-- T2-2 -->
-          <g class="table-group" id="svg-T2-2" onclick="toggleTable('T2-2')">
-            <rect class="table-body" x="160" y="52" width="80" height="100" rx="8" fill="#0a2218" stroke="#1D9E75" stroke-width="1.5"/>
-            <circle cx="200" cy="52" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="200" cy="152" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="160" cy="85" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="240" cy="85" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <text x="200" y="96" font-size="12" font-weight="600" fill="#1D9E75" font-family="system-ui" text-anchor="middle">T2-2</text>
-            <text x="200" y="111" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" opacity="0.6">2 seats</text>
-            <text x="200" y="130" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" id="svg-status-T2-2">Open</text>
-          </g>
-
-          <!-- T4-1 -->
-          <g class="table-group" id="svg-T4-1" onclick="toggleTable('T4-1')">
-            <rect class="table-body" x="30" y="205" width="105" height="110" rx="8" fill="#0a2218" stroke="#1D9E75" stroke-width="1.5"/>
-            <circle cx="82" cy="205" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="82" cy="315" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="30" cy="235" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="30" cy="265" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="135" cy="235" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="135" cy="265" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <text x="82" y="252" font-size="12" font-weight="600" fill="#1D9E75" font-family="system-ui" text-anchor="middle">T4-1</text>
-            <text x="82" y="267" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" opacity="0.6">4 seats</text>
-            <text x="82" y="284" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" id="svg-status-T4-1">Open</text>
-          </g>
-
-          <!-- T4-2 -->
-          <g class="table-group" id="svg-T4-2" onclick="toggleTable('T4-2')">
-            <rect class="table-body" x="185" y="205" width="105" height="110" rx="8" fill="#0a2218" stroke="#1D9E75" stroke-width="1.5"/>
-            <circle cx="237" cy="205" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="237" cy="315" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="185" cy="235" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="185" cy="265" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="290" cy="235" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="290" cy="265" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <text x="237" y="252" font-size="12" font-weight="600" fill="#1D9E75" font-family="system-ui" text-anchor="middle">T4-2</text>
-            <text x="237" y="267" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" opacity="0.6">4 seats</text>
-            <text x="237" y="284" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" id="svg-status-T4-2">Open</text>
-          </g>
-
-          <!-- T6-1 -->
-          <g class="table-group" id="svg-T6-1" onclick="toggleTable('T6-1')">
-            <rect class="table-body" x="30" y="375" width="150" height="68" rx="8" fill="#0a2218" stroke="#1D9E75" stroke-width="1.5"/>
-            <circle cx="65" cy="375" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="105" cy="375" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="145" cy="375" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="65" cy="443" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="105" cy="443" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="145" cy="443" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <text x="105" y="404" font-size="12" font-weight="600" fill="#1D9E75" font-family="system-ui" text-anchor="middle">T6-1</text>
-            <text x="105" y="419" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" opacity="0.6">6 seats</text>
-            <text x="105" y="435" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" id="svg-status-T6-1">Open</text>
-          </g>
-
-          <!-- T8-1 -->
-          <g class="table-group" id="svg-T8-1" onclick="toggleTable('T8-1')">
-            <rect class="table-body" x="230" y="375" width="200" height="68" rx="8" fill="#0a2218" stroke="#1D9E75" stroke-width="1.5"/>
-            <circle cx="260" cy="375" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="295" cy="375" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="330" cy="375" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="400" cy="375" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="260" cy="443" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="295" cy="443" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="330" cy="443" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <circle cx="400" cy="443" r="7" fill="#0a2218" stroke="#1D9E75" stroke-width="1.2"/>
-            <text x="330" y="404" font-size="12" font-weight="600" fill="#1D9E75" font-family="system-ui" text-anchor="middle">T8-1</text>
-            <text x="330" y="419" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" opacity="0.6">8 seats</text>
-            <text x="330" y="435" font-size="10" fill="#1D9E75" font-family="system-ui" text-anchor="middle" id="svg-status-T8-1">Open</text>
-          </g>
-
-        </svg>
-      </div>
-      <div class="status-bar" id="statusBar">Loading live data...</div>
-    </div>
-
-    <div class="sidebar">
-      <div class="stat-card">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-val" id="statBooked">—</div>
         <div class="stat-label">Booked today</div>
-        <div class="stat-value" id="statBooked">—</div>
-        <div class="stat-sub" id="statSub">reservations</div>
       </div>
-      <div class="stat-card">
+      <div class="stat">
+        <div class="stat-val" id="statAvail">—</div>
         <div class="stat-label">Available now</div>
-        <div class="stat-value" id="statOpen">—</div>
-        <div class="stat-sub">tables at selected time</div>
       </div>
-      <div class="res-card">
-        <div class="res-head">Reservations</div>
-        <div class="res-list" id="resList"><div class="empty">Loading...</div></div>
-      </div>
+    </div>
+    <div class="sec-label">Reservations</div>
+    <div class="res-list" id="resList"></div>
+  </div>
+</div>
+
+<!-- LIVE BAR -->
+<div class="livebar">
+  <span class="pulse"></span>
+  <span id="liveText">Connecting...</span>
+</div>
+
+<!-- MODAL -->
+<div class="backdrop" id="backdrop">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalDesc"></p>
+    <div class="modal-btns">
+      <button class="mbtn dismiss" onclick="closeModal()">Keep it</button>
+      <button class="mbtn cancel-yes" id="confirmBtn" onclick="confirmAction()">Confirm</button>
     </div>
   </div>
 </div>
 
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
-  const GET_URL  = "https://o595a.app.n8n.cloud/webhook/restaurant-status";
-  const POST_URL = "https://o595a.app.n8n.cloud/webhook/restaurant-table-update";
+  // ── CONFIG — paste your n8n webhook URLs here ──
+  const WEBHOOK_GET  = 'https://o595a.app.n8n.cloud/webhook/restaurant-status';   // Webhook2 (GET)
+  const WEBHOOK_POST = 'https://o595a.app.n8n.cloud/webhook/restaurant-table-update';  // Webhook (POST) — handles walk-ins + cancelReservation
 
-  const TABLES = [
-    { id:"T2-1", seats:2 }, { id:"T2-2", seats:2 },
-    { id:"T4-1", seats:4 }, { id:"T4-2", seats:4 },
-    { id:"T6-1", seats:6 }, { id:"T8-1", seats:8 },
-  ];
+  // ─────────────────────────────────────────────
 
-  const COLORS = {
-    open:   { fill:"#0a2218", stroke:"#1D9E75", text:"#1D9E75" },
-    booked: { fill:"#13112a", stroke:"#7F77DD", text:"#7F77DD" },
-    filled: { fill:"#220a0a", stroke:"#E24B4A", text:"#E24B4A" },
-  };
+  let state = { tables: [], reservations: [], walkIns: [] };
+  let pending = null;
 
-  const dateEl = document.getElementById("selDate");
-  const timeEl = document.getElementById("selTime");
+  // init date/time
+  const dateEl = document.getElementById('dateInput');
+  const timeEl = document.getElementById('timeInput');
   dateEl.value = new Date().toISOString().slice(0,10);
+  const nowH = new Date().getHours();
+  const nowSlot = (nowH < 10 ? '0'+nowH : nowH) + ':00';
+  for (let o of timeEl.options) { if (o.value === nowSlot) { o.selected = true; break; } }
+  dateEl.onchange = render;
+  timeEl.onchange = render;
+  document.getElementById('backdrop').onclick = e => { if (e.target === e.currentTarget) closeModal(); };
 
-  for (let m = 9*60; m <= 22*60; m += 30) {
-    const h = String(Math.floor(m/60)).padStart(2,"0");
-    const mn = String(m%60).padStart(2,"0");
-    const o = document.createElement("option");
-    o.value = `${h}:${mn}`; o.textContent = `${h}:${mn}`;
-    if (h==="18" && mn==="00") o.selected = true;
-    timeEl.appendChild(o);
+  function mins(t) {
+    const p = String(t||'').split(':').map(Number);
+    return (p.length >= 2 && !isNaN(p[0]) && !isNaN(p[1])) ? p[0]*60+p[1] : null;
+  }
+  function overlaps(as, ae, bs, be) { return as < be && bs < ae; }
+
+  function tableStatus(id, date, time) {
+    const s = mins(time);
+    if (s === null) return 'open';
+    const e = s + 90;
+    const booked = (state.reservations||[]).some(r =>
+      r.status !== 'cancelled' && r.date === date && r.tableId === id &&
+      (os => os !== null && overlaps(s, e, os, os + (r.durationMinutes||90)))(mins(r.time))
+    );
+    if (booked) return 'booked';
+    const filled = (state.walkIns||[]).some(r =>
+      r.status === 'filled' && r.date === date && r.tableId === id &&
+      (os => os !== null && overlaps(s, e, os, os + (r.durationMinutes||90)))(mins(r.time))
+    );
+    return filled ? 'filled' : 'open';
   }
 
-  dateEl.addEventListener("change", loadStatus);
-  timeEl.addEventListener("change", renderAll);
-
-  let liveReservations = [], liveWalkIns = [];
-
-  function minutesFromTime(t) {
-    const p = String(t||"").split(":").map(Number);
-    return p.length < 2 ? null : p[0]*60+p[1];
-  }
-
-  function getTableState(id, date, time) {
-    const s = minutesFromTime(time);
-    if (s===null) return "open";
-    const e = s+90;
-    const all = [...liveReservations, ...liveWalkIns];
-    const hit = all.find(r => {
-      if (r.status==="cancelled"||r.status==="open") return false;
-      if (r.date!==date||r.tableId!==id) return false;
-      const os = minutesFromTime(r.time);
-      if (os===null) return false;
-      return s < os+(r.durationMinutes||90) && os < e;
-    });
-    if (!hit) return "open";
-    return hit.source==="vapi" ? "booked" : "filled";
-  }
-
-  function updateSvgTable(id, state) {
-    const g = document.getElementById("svg-"+id);
-    if (!g) return;
-    const c = COLORS[state];
-    const rect = g.querySelector("rect.table-body");
-    if (rect) { rect.setAttribute("fill", c.fill); rect.setAttribute("stroke", c.stroke); }
-    g.querySelectorAll("circle").forEach(ci => {
-      ci.setAttribute("fill", c.fill);
-      ci.setAttribute("stroke", c.stroke);
-    });
-    g.querySelectorAll("text").forEach(tx => tx.setAttribute("fill", c.text));
-    const st = document.getElementById("svg-status-"+id);
-    if (st) st.textContent = state==="open" ? "Open" : state==="booked" ? "Booked" : "Filled";
-  }
-
-  function renderAll() {
+  function renderFloor() {
     const date = dateEl.value, time = timeEl.value;
-    let open = 0;
-    TABLES.forEach(t => {
-      const state = getTableState(t.id, date, time);
-      updateSvgTable(t.id, state);
-      if (state==="open") open++;
+    const tMap = {};
+    (state.tables||[]).forEach(t => tMap[t.id] = t);
+    const zones = [
+      { name: 'Window seats',   ids: ['T2-1','T2-2'] },
+      { name: 'Main floor',     ids: ['T4-1','T4-2'] },
+      { name: 'Private dining', ids: ['T6-1','T8-1'] }
+    ];
+    let html = '';
+    zones.forEach(z => {
+      html += `<div class="zone"><div class="zone-name">${z.name}</div><div class="tables-row">`;
+      z.ids.forEach(id => {
+        const t = tMap[id]; if (!t) return;
+        const st = tableStatus(id, date, time);
+        const label = st.charAt(0).toUpperCase() + st.slice(1);
+        html += `<div class="table-card ${st}" onclick="onTableClick('${id}','${st}')">
+          <div class="table-id">${id}</div>
+          <div class="table-seats">${t.seats} seats</div>
+          <div class="table-badge">${label}</div>
+        </div>`;
+      });
+      html += '</div></div>';
     });
-    const todayRes = liveReservations.filter(r => r.date===date && r.status!=="cancelled");
-    document.getElementById("statBooked").textContent = todayRes.length;
-    document.getElementById("statOpen").textContent = open;
-    renderResList(date);
+    document.getElementById('floorPlan').innerHTML = html;
   }
 
-  function renderResList(date) {
-    const list = document.getElementById("resList");
-    const todays = liveReservations.filter(r => r.date===date && r.status!=="cancelled");
-    if (!todays.length) {
-      list.innerHTML = `<div class="empty">No reservations for ${date}</div>`;
+  function renderSidebar() {
+    const date = dateEl.value, time = timeEl.value;
+    const todayRes = (state.reservations||[]).filter(r => r.date === date && r.status !== 'cancelled');
+    document.getElementById('statBooked').textContent = todayRes.length;
+    const avail = (state.tables||[]).filter(t => tableStatus(t.id, date, time) === 'open').length;
+    document.getElementById('statAvail').textContent = avail;
+
+    const all = [...(state.reservations||[])].sort((a,b) => (a.time||'') > (b.time||'') ? 1 : -1);
+    if (!all.length) {
+      document.getElementById('resList').innerHTML = '<div class="empty">No reservations yet</div>';
       return;
     }
-    list.innerHTML = todays
-      .sort((a,b) => a.time.localeCompare(b.time))
-      .map(r => `
-        <div class="res-item">
-          <div>
-            <div class="res-name">${r.name||"Guest"}</div>
-            <div class="res-detail">${r.time} · ${r.partySize} pax · ${r.tableId}</div>
-          </div>
-          <div class="res-badge">VAPI</div>
+    let html = '';
+    all.forEach(r => {
+      const init = (r.name||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const cancelled = r.status === 'cancelled';
+      html += `<div class="res-item${cancelled?' cancelled':''}">
+        <div class="avatar">${init}</div>
+        <div class="res-info">
+          <div class="res-name">${r.name||'Guest'}</div>
+          <div class="res-meta">${r.time||''} · ${r.partySize||'?'} pax · ${r.tableId||''}</div>
         </div>
-      `).join("");
+        <div class="vapi-tag">${r.source||'vapi'}</div>
+        ${!cancelled ? `<div class="x-btn" title="Cancel reservation" onclick="askCancel('${r.id}','${r.name}','${r.tableId}','${r.time}')">✕</div>` : ''}
+      </div>`;
+    });
+    document.getElementById('resList').innerHTML = html;
   }
 
-  function setStatus(msg, type) {
-    const bar = document.getElementById("statusBar");
-    bar.textContent = msg;
-    bar.className = "status-bar"+(type?" "+type:"");
+  function renderLive() {
+    const now = new Date();
+    const d = now.toISOString().slice(0,10);
+    const t = now.toTimeString().slice(0,8);
+    const total = (state.reservations||[]).filter(r => r.date === d && r.status !== 'cancelled').length;
+    document.getElementById('liveText').textContent =
+      `Live — ${total} reservation(s) on ${d}. Last updated ${t}`;
   }
 
-  async function loadStatus() {
-    setStatus("Fetching live data...", "info");
+  function render() { renderFloor(); renderSidebar(); renderLive(); }
+
+  async function fetchData() {
     try {
-      const res = await fetch(GET_URL);
-      const data = await res.json();
-      liveReservations = data.reservations||[];
-      liveWalkIns = data.walkIns||[];
-      renderAll();
-      const count = liveReservations.filter(r=>r.date===dateEl.value&&r.status!=="cancelled").length;
-      setStatus(`Live — ${count} reservation(s) on ${dateEl.value}. Last updated ${new Date().toLocaleTimeString()}.`, "ok");
+      const res = await fetch(WEBHOOK_GET);
+      const raw = await res.json();
+      const d = Array.isArray(raw) ? raw[0] : raw;
+      if (d.tables)       state.tables       = d.tables;
+      if (d.reservations) state.reservations = d.reservations;
+      if (d.walkIns)      state.walkIns      = d.walkIns;
     } catch(e) {
-      setStatus("Could not connect to n8n — check workflow is published.", "err");
-    }
-  }
-
-  async function toggleTable(id) {
-    const date = dateEl.value, time = timeEl.value;
-    if (!date||!time) { setStatus("Select a date and time first.", "err"); return; }
-    const state = getTableState(id, date, time);
-    const newStatus = state==="filled" ? "open" : "filled";
-    setStatus(`Updating ${id}...`);
-    try {
-      const res = await fetch(POST_URL, {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ tableId:id, status:newStatus, date, time, timestamp:new Date().toISOString() })
-      });
-      if (res.ok) {
-        if (newStatus==="filled") {
-          liveWalkIns.push({ tableId:id, date, time, durationMinutes:90, status:"filled", source:"floor-plan" });
-        } else {
-          liveWalkIns = liveWalkIns.filter(w=>!(w.tableId===id&&w.date===date&&w.time===time));
-          liveReservations = liveReservations.filter(r=>!(r.tableId===id&&r.date===date));
-        }
-        renderAll();
-        setStatus(`${id} marked ${newStatus} on ${date} at ${time} ✓`, "ok");
-      } else {
-        setStatus(`Error ${res.status} — try again.`, "err");
+      if (!state.tables.length) {
+        state.tables = [
+          {id:'T2-1',seats:2},{id:'T2-2',seats:2},
+          {id:'T4-1',seats:4},{id:'T4-2',seats:4},
+          {id:'T6-1',seats:6},{id:'T8-1',seats:8}
+        ];
       }
-    } catch(e) {
-      setStatus("Could not reach n8n.", "err");
+    }
+    render();
+  }
+
+  async function post(body) {
+    try {
+      await fetch(WEBHOOK_POST, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } catch(e) { console.warn('POST failed', e); }
+  }
+
+  function onTableClick(id, status) {
+    const date = dateEl.value, time = timeEl.value;
+    if (status === 'open') {
+      pending = { type: 'fill', id, date, time };
+      openModal(`Mark ${id} as filled?`, 'Blocks this table for walk-in guests at this slot.', 'Mark filled');
+    } else if (status === 'filled') {
+      pending = { type: 'unfill', id, date, time };
+      openModal(`Free table ${id}?`, 'Removes the walk-in block — table becomes available.', 'Free table');
+    } else if (status === 'booked') {
+      const s = mins(time), e = s + 90;
+      const r = (state.reservations||[]).find(r =>
+        r.tableId === id && r.date === date && r.status !== 'cancelled' &&
+        (os => os !== null && overlaps(s, e, os, os+(r.durationMinutes||90)))(mins(r.time))
+      );
+      if (r) askCancel(r.id, r.name, r.tableId, r.time);
     }
   }
 
-  loadStatus();
-  setInterval(loadStatus, 30000);
+  function askCancel(id, name, tableId, time) {
+    pending = { type: 'cancel', reservationId: id };
+    openModal(`Cancel ${name}'s reservation?`, `Table ${tableId} at ${time} will be freed immediately.`, 'Yes, cancel');
+  }
+
+  async function confirmAction() {
+    closeModal();
+    if (!pending) return;
+    const { type } = pending;
+
+    if (type === 'cancel') {
+      const r = (state.reservations||[]).find(x => x.id === pending.reservationId);
+      if (r) r.status = 'cancelled';
+      render();
+      toast('Reservation cancelled ✓');
+      await post({ action: 'cancelReservation', reservationId: pending.reservationId });
+      setTimeout(fetchData, 800);
+    } else if (type === 'fill') {
+      const { id, date, time } = pending;
+      state.walkIns = (state.walkIns||[]).filter(w => !(w.tableId===id && w.date===date && w.time===time));
+      state.walkIns.push({ id:'block_'+Date.now(), tableId:id, date, time, durationMinutes:90, status:'filled', source:'floor-plan', createdAt:new Date().toISOString() });
+      render();
+      toast(`Table ${id} marked filled`);
+      await post({ tableId: id, date, time, status: 'filled' });
+    } else if (type === 'unfill') {
+      const { id, date, time } = pending;
+      state.walkIns = (state.walkIns||[]).filter(w => !(w.tableId===id && w.date===date && w.time===time && w.source==='floor-plan'));
+      render();
+      toast(`Table ${id} freed ✓`);
+      await post({ tableId: id, date, time, status: 'open' });
+    }
+    pending = null;
+  }
+
+  function openModal(title, desc, confirmLabel) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalDesc').textContent  = desc;
+    document.getElementById('confirmBtn').textContent = confirmLabel;
+    document.getElementById('backdrop').classList.add('on');
+  }
+  function closeModal() {
+    document.getElementById('backdrop').classList.remove('on');
+    pending = null;
+  }
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  fetchData();
+  setInterval(fetchData, 30000);
 </script>
 </body>
 </html>
