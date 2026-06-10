@@ -245,22 +245,19 @@
 
   /* ── MODAL ── */
   .backdrop {
-    position: fixed; inset: 0;
+    display: none;
+    min-height: 160px;
     background: rgba(0,0,0,0.72);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 200; opacity: 0; pointer-events: none;
-    transition: opacity 0.18s;
+    align-items: center; justify-content: center;
+    padding: 40px 16px;
   }
-  .backdrop.on { opacity: 1; pointer-events: all; }
+  .backdrop.on { display: flex; }
   .modal {
     background: #1e1e1e;
     border: 0.5px solid rgba(255,255,255,0.12);
     border-radius: 14px; padding: 26px;
-    width: 300px; max-width: 92vw;
-    transform: scale(0.96);
-    transition: transform 0.18s;
+    width: 300px; max-width: 92%;
   }
-  .backdrop.on .modal { transform: scale(1); }
   .modal h3 {
     font-family: 'Playfair Display', serif;
     font-size: 19px; color: #f5ede0; margin-bottom: 6px;
@@ -360,12 +357,12 @@
 </div>
 
 <!-- MODAL -->
-<div class="backdrop" id="backdrop">
+<div class="backdrop" id="backdrop" onclick="if(event.target===this)dismissModal()">
   <div class="modal">
     <h3 id="modalTitle"></h3>
     <p id="modalDesc"></p>
     <div class="modal-btns">
-      <button class="mbtn dismiss" onclick="closeModal()">Keep it</button>
+      <button class="mbtn dismiss" onclick="dismissModal()">Keep it</button>
       <button class="mbtn cancel-yes" id="confirmBtn" onclick="confirmAction()">Confirm</button>
     </div>
   </div>
@@ -376,8 +373,8 @@
 
 <script>
   // ── CONFIG — paste your n8n webhook URLs here ──
-  const WEBHOOK_GET  = 'https://o595a.app.n8n.cloud/webhook/restaurant-status';   // Webhook2 (GET)
-  const WEBHOOK_POST = 'https://o595a.app.n8n.cloud/webhook/restaurant-table-update';  // Webhook (POST) — handles walk-ins + cancelReservation
+  const WEBHOOK_GET  = 'https://YOUR_N8N_GET_WEBHOOK_URL';   // Webhook2 (GET)
+  const WEBHOOK_POST = 'https://YOUR_N8N_POST_WEBHOOK_URL';  // Webhook (POST) — handles walk-ins + cancelReservation
 
   // ─────────────────────────────────────────────
 
@@ -393,7 +390,6 @@
   for (let o of timeEl.options) { if (o.value === nowSlot) { o.selected = true; break; } }
   dateEl.onchange = render;
   timeEl.onchange = render;
-  document.getElementById('backdrop').onclick = e => { if (e.target === e.currentTarget) closeModal(); };
 
   function mins(t) {
     const p = String(t||'').split(':').map(Number);
@@ -538,32 +534,32 @@
   }
 
   async function confirmAction() {
-    closeModal();
     if (!pending) return;
-    const { type } = pending;
+    const snap = Object.assign({}, pending);
+    closeModal();
+    const { type } = snap;
 
     if (type === 'cancel') {
-      const r = (state.reservations||[]).find(x => x.id === pending.reservationId);
+      const r = (state.reservations||[]).find(x => x.id === snap.reservationId);
       if (r) r.status = 'cancelled';
       render();
       toast('Reservation cancelled ✓');
-      await post({ action: 'cancelReservation', reservationId: pending.reservationId });
+      await post({ action: 'cancelReservation', reservationId: snap.reservationId });
       setTimeout(fetchData, 800);
     } else if (type === 'fill') {
-      const { id, date, time } = pending;
+      const { id, date, time } = snap;
       state.walkIns = (state.walkIns||[]).filter(w => !(w.tableId===id && w.date===date && w.time===time));
       state.walkIns.push({ id:'block_'+Date.now(), tableId:id, date, time, durationMinutes:90, status:'filled', source:'floor-plan', createdAt:new Date().toISOString() });
       render();
       toast(`Table ${id} marked filled`);
       await post({ tableId: id, date, time, status: 'filled' });
     } else if (type === 'unfill') {
-      const { id, date, time } = pending;
+      const { id, date, time } = snap;
       state.walkIns = (state.walkIns||[]).filter(w => !(w.tableId===id && w.date===date && w.time===time && w.source==='floor-plan'));
       render();
       toast(`Table ${id} freed ✓`);
       await post({ tableId: id, date, time, status: 'open' });
     }
-    pending = null;
   }
 
   function openModal(title, desc, confirmLabel) {
@@ -573,6 +569,10 @@
     document.getElementById('backdrop').classList.add('on');
   }
   function closeModal() {
+    document.getElementById('backdrop').classList.remove('on');
+    pending = null;
+  }
+  function dismissModal() {
     document.getElementById('backdrop').classList.remove('on');
     pending = null;
   }
