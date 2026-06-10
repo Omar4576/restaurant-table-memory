@@ -372,9 +372,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── CONFIG — paste your n8n webhook URLs here ──
-  const WEBHOOK_GET  = 'https://o595a.app.n8n.cloud/webhook/restaurant-status';   // Webhook2 (GET)
-  const WEBHOOK_POST = 'https://o595a.app.n8n.cloud/webhook/restaurant-table-update';  // Webhook (POST) — handles walk-ins + cancelReservation
+  // ── CONFIG ──
+  const WEBHOOK_GET    = 'https://o595a.app.n8n.cloud/webhook/restaurant-status';
+  const WEBHOOK_POST   = 'https://o595a.app.n8n.cloud/webhook/restaurant-table-update';
+  const WEBHOOK_CANCEL = 'https://o595a.app.n8n.cloud/webhook/restaurant-vapi';
 
   // ─────────────────────────────────────────────
 
@@ -392,7 +393,19 @@
   timeEl.onchange = render;
 
   function mins(t) {
-    const p = String(t||'').split(':').map(Number);
+    if (!t) return null;
+    t = String(t).trim();
+    // handle "2:00 PM" / "2:00 AM" format from VAPI
+    const ampm = t.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (ampm) {
+      let h = parseInt(ampm[1]), m = parseInt(ampm[2]);
+      const period = ampm[3].toUpperCase();
+      if (period === 'AM' && h === 12) h = 0;
+      if (period === 'PM' && h !== 12) h += 12;
+      return h * 60 + m;
+    }
+    // handle "14:00" 24hr format
+    const p = t.split(':').map(Number);
     return (p.length >= 2 && !isNaN(p[0]) && !isNaN(p[1])) ? p[0]*60+p[1] : null;
   }
   function overlaps(as, ae, bs, be) { return as < be && bs < ae; }
@@ -544,8 +557,14 @@
       if (r) r.status = 'cancelled';
       render();
       toast('Reservation cancelled ✓');
-      await post({ action: 'cancelReservation', reservationId: snap.reservationId });
-      setTimeout(fetchData, 800);
+      try {
+        await fetch(WEBHOOK_CANCEL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'cancelReservation', reservationId: snap.reservationId })
+        });
+      } catch(e) { console.warn('cancel failed', e); }
+      setTimeout(fetchData, 1200);
     } else if (type === 'fill') {
       const { id, date, time } = snap;
       state.walkIns = (state.walkIns||[]).filter(w => !(w.tableId===id && w.date===date && w.time===time));
