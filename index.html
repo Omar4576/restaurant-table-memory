@@ -3,606 +3,427 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kaybishow House — Staff Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+<title>Kaybishow House</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#e8e0d0;font-family:'Inter',sans-serif;font-size:14px}
 
-  :root {
-    --gold: #c8a86a;
-    --gold-dim: rgba(200,168,106,0.15);
-    --gold-border: rgba(200,168,106,0.3);
-    --bg: #0a0a0a;
-    --bg2: #111111;
-    --bg3: #161616;
-    --bg4: #1c1c1c;
-    --text: #e8e0d0;
-    --text-muted: #7a6e5e;
-    --text-dim: #4a4030;
-    --open: #4caf88;
-    --open-bg: rgba(76,175,136,0.1);
-    --open-border: rgba(76,175,136,0.3);
-    --booked: #7b8fcc;
-    --booked-bg: rgba(123,143,204,0.1);
-    --booked-border: rgba(123,143,204,0.3);
-    --filled: #cc7766;
-    --filled-bg: rgba(204,119,102,0.1);
-    --filled-border: rgba(204,119,102,0.3);
-    --border: rgba(255,255,255,0.06);
-    --radius: 10px;
-  }
+.hero{position:relative;height:200px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover;object-position:center 40%;opacity:0.4}
+.hero-fade{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 0%,#0a0a0a 100%)}
+.hero-title{position:absolute;bottom:24px;left:28px}
+.hero-title h1{font-family:'Playfair Display',serif;font-size:30px;color:#f5ede0}
+.hero-title p{font-size:11px;color:#8a7a6a;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+.legend{position:absolute;top:16px;right:16px;display:flex;gap:12px;background:rgba(0,0,0,.6);padding:7px 14px;border-radius:20px;border:.5px solid rgba(255,255,255,.08)}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#8a7a6a}
+.dot{width:7px;height:7px;border-radius:50%}
 
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; }
+.bar{display:flex;align-items:flex-end;gap:12px;padding:12px 24px;background:#111;border-bottom:.5px solid rgba(255,255,255,.06)}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:10px;color:#4a4030;letter-spacing:.1em;text-transform:uppercase}
+.field input,.field select{background:#181818;border:.5px solid rgba(255,255,255,.1);color:#e8e0d0;padding:6px 10px;border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;outline:none}
+.field select option{background:#181818}
+.rbtn{margin-left:auto;background:rgba(200,168,106,.12);border:.5px solid rgba(200,168,106,.3);color:#c8a86a;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif}
+.rbtn:hover{background:rgba(200,168,106,.22)}
 
-  /* ── HERO ── */
-  .hero {
-    position: relative;
-    height: 220px;
-    overflow: hidden;
-  }
-  .hero-img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    object-position: center 40%;
-    opacity: 0.4;
-    display: block;
-  }
-  .hero-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(to bottom, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.9) 100%);
-  }
-  .hero-text {
-    position: absolute; bottom: 28px; left: 32px;
-  }
-  .hero-text h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 32px; font-weight: 600;
-    color: #f5ede0; letter-spacing: 0.02em;
-  }
-  .hero-text p {
-    font-size: 11px; color: #a89880;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    margin-top: 4px;
-  }
-  .legend {
-    position: absolute; top: 20px; right: 20px;
-    display: flex; gap: 14px; align-items: center;
-    background: rgba(10,10,10,0.65);
-    padding: 8px 16px; border-radius: 20px;
-    border: 0.5px solid var(--border);
-    backdrop-filter: blur(4px);
-  }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a89880; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .dot-open { background: var(--open); }
-  .dot-booked { background: var(--booked); }
-  .dot-filled { background: var(--filled); }
+.wrap{display:grid;grid-template-columns:1fr 290px}
 
-  /* ── CONTROLS ── */
-  .controls {
-    display: flex; align-items: flex-end; gap: 14px;
-    padding: 14px 28px;
-    background: var(--bg2);
-    border-bottom: 0.5px solid var(--border);
-  }
-  .ctrl { display: flex; flex-direction: column; gap: 4px; }
-  .ctrl label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
-  .ctrl input, .ctrl select {
-    background: var(--bg3); border: 0.5px solid rgba(255,255,255,0.1);
-    color: var(--text); padding: 7px 11px; border-radius: 7px;
-    font-size: 13px; font-family: 'Inter', sans-serif;
-    outline: none; cursor: pointer;
-    transition: border-color 0.2s;
-  }
-  .ctrl input:focus, .ctrl select:focus { border-color: var(--gold-border); }
-  .ctrl select option { background: var(--bg3); }
-  .refresh-btn {
-    margin-left: auto;
-    background: var(--gold-dim); border: 0.5px solid var(--gold-border);
-    color: var(--gold); padding: 8px 18px; border-radius: 7px;
-    font-size: 12px; font-family: 'Inter', sans-serif;
-    cursor: pointer; letter-spacing: 0.06em;
-    transition: background 0.2s;
-  }
-  .refresh-btn:hover { background: rgba(200,168,106,0.25); }
+.floor{padding:20px 24px}
+.zone-label{font-size:10px;color:#4a4030;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.zone{margin-bottom:22px}
+.trow{display:flex;gap:10px;flex-wrap:wrap}
 
-  /* ── MAIN LAYOUT ── */
-  .main {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    min-height: calc(100vh - 220px - 53px - 36px);
-  }
+.tcard{width:104px;height:90px;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:1.5px solid transparent;transition:transform .18s,border-color .18s}
+.tcard:hover{transform:translateY(-2px)}
+.tcard:active{transform:scale(.97)}
+.tcard.open{background:#0b1e14;border-color:#2a5c3f}
+.tcard.open:hover{border-color:#3d8a5c}
+.tcard.booked{background:#0e1228;border-color:#2a3460}
+.tcard.booked:hover{border-color:#4a5a9a}
+.tcard.filled{background:#1d0c09;border-color:#5c2a20}
+.tcard.filled:hover{border-color:#8a3d2a}
+.tid{font-size:13px;font-weight:500}
+.tcard.open .tid{color:#5ec98a}
+.tcard.booked .tid{color:#7b8fcc}
+.tcard.filled .tid{color:#cc7766}
+.tseat{font-size:10px;color:#4a4030}
+.tbadge{font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:8px;margin-top:1px}
+.tcard.open .tbadge{background:rgba(76,175,136,.12);color:#4caf88}
+.tcard.booked .tbadge{background:rgba(123,143,204,.12);color:#7b8fcc}
+.tcard.filled .tbadge{background:rgba(204,119,102,.12);color:#cc7766}
 
-  /* ── FLOOR PLAN ── */
-  .floor { padding: 22px 28px; border-right: 0.5px solid var(--border); }
-  .sec-label {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--text-dim); margin-bottom: 18px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .sec-label::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+.side{background:#0d0d0d;border-left:.5px solid rgba(255,255,255,.06);padding:18px;overflow-y:auto;max-height:calc(100vh - 200px - 44px - 32px)}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.scard{background:#141414;border:.5px solid rgba(255,255,255,.06);border-radius:8px;padding:12px}
+.snum{font-family:'Playfair Display',serif;font-size:24px;color:#f5ede0}
+.slbl{font-size:10px;color:#4a4030;margin-top:2px}
+.slabel{font-size:10px;color:#4a4030;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.slabel::after{content:'';flex:1;height:.5px;background:rgba(255,255,255,.06)}
 
-  .zone { margin-bottom: 24px; }
-  .zone-name {
-    font-size: 10px; color: #5a5040;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    margin-bottom: 12px;
-  }
-  .tables-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.rlist{display:flex;flex-direction:column;gap:6px}
+.ritem{background:#141414;border:.5px solid rgba(255,255,255,.05);border-radius:7px;padding:9px 11px;display:flex;align-items:center;gap:9px}
+.ritem.cancelled{opacity:.35;pointer-events:none}
+.rav{width:30px;height:30px;border-radius:50%;background:rgba(123,143,204,.1);border:.5px solid rgba(123,143,204,.25);display:flex;align-items:center;justify-content:center;font-size:10px;color:#7b8fcc;font-weight:500;flex-shrink:0}
+.rinfo{flex:1;min-width:0}
+.rname{font-size:12px;color:#d4c8b8;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rmeta{font-size:10px;color:#4a4030;margin-top:1px}
+.rtag{font-size:9px;background:rgba(123,143,204,.12);color:#7b8fcc;padding:2px 6px;border-radius:6px;flex-shrink:0}
+.xbtn{width:24px;height:24px;border-radius:5px;background:rgba(204,119,102,.1);border:.5px solid rgba(204,119,102,.25);color:#cc7766;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;flex-shrink:0}
+.xbtn:hover{background:rgba(204,119,102,.25)}
+.rempty{font-size:12px;color:#4a4030;text-align:center;padding:20px 0}
 
-  .table-card {
-    width: 108px; height: 96px;
-    border-radius: var(--radius);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    cursor: pointer;
-    border: 1.5px solid transparent;
-    transition: transform 0.2s, border-color 0.2s, background 0.2s;
-    user-select: none; position: relative;
-    gap: 3px;
-  }
-  .table-card:hover { transform: translateY(-3px); }
-  .table-card:active { transform: scale(0.97); }
+.lbar{padding:8px 24px;background:#0d0d0d;border-top:.5px solid rgba(255,255,255,.05);font-size:10px;color:#4a4030;display:flex;align-items:center;gap:7px}
+.lpulse{width:6px;height:6px;border-radius:50%;background:#4caf88;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 
-  .table-card.open   { background: #0b1e14; border-color: #2a5c3f; }
-  .table-card.open:hover { border-color: #3d8a5c; background: #0f2419; }
-  .table-card.booked { background: #0e1228; border-color: #2a3460; }
-  .table-card.booked:hover { border-color: #4a5a9a; background: #111630; }
-  .table-card.filled { background: #1d0c09; border-color: #5c2a20; }
-  .table-card.filled:hover { border-color: #8a3d2a; background: #221009; }
+/* MODAL — no position:fixed, just a full-width overlay div in normal flow */
+.mwrap{display:none;background:rgba(0,0,0,.75);padding:60px 20px;align-items:center;justify-content:center}
+.mwrap.show{display:flex}
+.mbox{background:#1c1c1c;border:.5px solid rgba(255,255,255,.1);border-radius:12px;padding:24px;width:280px;max-width:100%}
+.mbox h3{font-family:'Playfair Display',serif;font-size:18px;color:#f5ede0;margin-bottom:6px}
+.mbox p{font-size:12px;color:#7a6e5e;margin-bottom:18px;line-height:1.6}
+.mbtns{display:flex;gap:8px}
+.mbtn{flex:1;padding:9px;border-radius:7px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;border:.5px solid transparent}
+.mbtn.yes{background:rgba(204,119,102,.12);border-color:rgba(204,119,102,.35);color:#cc7766}
+.mbtn.yes:hover{background:rgba(204,119,102,.25)}
+.mbtn.no{background:#222;border-color:rgba(255,255,255,.1);color:#a89880}
+.mbtn.no:hover{background:#2a2a2a}
 
-  .table-id { font-size: 13px; font-weight: 500; }
-  .table-card.open   .table-id { color: #5ec98a; }
-  .table-card.booked .table-id { color: #7b8fcc; }
-  .table-card.filled .table-id { color: #cc7766; }
-
-  .table-seats { font-size: 10px; color: #5a5040; }
-
-  .table-badge {
-    font-size: 9px; letter-spacing: 0.07em;
-    text-transform: uppercase; padding: 2px 8px;
-    border-radius: 10px; margin-top: 2px;
-  }
-  .table-card.open   .table-badge { background: var(--open-bg);   color: var(--open);   }
-  .table-card.booked .table-badge { background: var(--booked-bg); color: var(--booked); }
-  .table-card.filled .table-badge { background: var(--filled-bg); color: var(--filled); }
-
-  /* ── SIDEBAR ── */
-  .sidebar {
-    background: var(--bg2);
-    padding: 20px;
-    overflow-y: auto;
-    max-height: calc(100vh - 220px - 53px - 36px);
-  }
-  .stats-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 8px; margin-bottom: 20px;
-  }
-  .stat {
-    background: var(--bg3);
-    border: 0.5px solid var(--border);
-    border-radius: 8px; padding: 14px;
-  }
-  .stat-val {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px; color: #f5ede0;
-  }
-  .stat-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
-
-  .res-list { display: flex; flex-direction: column; gap: 7px; }
-  .res-item {
-    background: var(--bg3);
-    border: 0.5px solid var(--border);
-    border-radius: 8px; padding: 10px 12px;
-    display: flex; align-items: center; gap: 10px;
-    transition: border-color 0.2s;
-  }
-  .res-item:hover { border-color: rgba(255,255,255,0.1); }
-  .res-item.cancelled { opacity: 0.38; pointer-events: none; }
-
-  .avatar {
-    width: 34px; height: 34px; border-radius: 50%;
-    background: var(--booked-bg); border: 0.5px solid var(--booked-border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; color: var(--booked); font-weight: 500;
-    flex-shrink: 0;
-  }
-  .res-info { flex: 1; min-width: 0; }
-  .res-name { font-size: 12px; color: #d4c8b8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .res-meta { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
-
-  .vapi-tag {
-    font-size: 9px; background: var(--booked-bg);
-    color: var(--booked); padding: 2px 7px;
-    border-radius: 8px; white-space: nowrap; flex-shrink: 0;
-  }
-  .x-btn {
-    width: 26px; height: 26px; border-radius: 6px;
-    background: var(--filled-bg); border: 0.5px solid var(--filled-border);
-    color: var(--filled); display: flex; align-items: center;
-    justify-content: center; cursor: pointer; font-size: 13px;
-    flex-shrink: 0; transition: background 0.2s;
-  }
-  .x-btn:hover { background: rgba(204,119,102,0.25); }
-
-  .empty { font-size: 12px; color: var(--text-dim); text-align: center; padding: 24px 0; }
-
-  /* ── LIVE BAR ── */
-  .livebar {
-    padding: 9px 28px;
-    background: var(--bg2);
-    border-top: 0.5px solid var(--border);
-    font-size: 10px; color: var(--text-dim);
-    display: flex; align-items: center; gap: 8px;
-    letter-spacing: 0.05em;
-  }
-  .pulse {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--open);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
-
-  /* ── MODAL ── */
-  .backdrop {
-    display: none;
-    min-height: 160px;
-    background: rgba(0,0,0,0.72);
-    align-items: center; justify-content: center;
-    padding: 40px 16px;
-  }
-  .backdrop.on { display: flex; }
-  .modal {
-    background: #1e1e1e;
-    border: 0.5px solid rgba(255,255,255,0.12);
-    border-radius: 14px; padding: 26px;
-    width: 300px; max-width: 92%;
-  }
-  .modal h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 19px; color: #f5ede0; margin-bottom: 6px;
-  }
-  .modal p { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
-  .modal-btns { display: flex; gap: 8px; }
-  .mbtn {
-    flex: 1; padding: 10px; border-radius: 8px;
-    font-size: 12px; font-family: 'Inter', sans-serif;
-    cursor: pointer; border: 0.5px solid transparent;
-    transition: background 0.2s;
-  }
-  .mbtn.cancel-yes { background: var(--filled-bg); border-color: var(--filled-border); color: var(--filled); }
-  .mbtn.cancel-yes:hover { background: rgba(204,119,102,0.28); }
-  .mbtn.dismiss { background: var(--bg3); border-color: rgba(255,255,255,0.1); color: #a89880; }
-  .mbtn.dismiss:hover { background: var(--bg4); }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed; bottom: 24px; left: 50%;
-    transform: translateX(-50%) translateY(70px);
-    background: #1e1e1e; border: 0.5px solid var(--open-border);
-    color: var(--open); padding: 10px 22px;
-    border-radius: 20px; font-size: 12px;
-    transition: transform 0.28s; z-index: 300;
-    white-space: nowrap;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#1c1c1c;border:.5px solid rgba(76,175,136,.4);color:#4caf88;padding:9px 20px;border-radius:16px;font-size:12px;transition:transform .25s;z-index:999;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 
-<!-- HERO -->
 <div class="hero">
-  <img class="hero-img"
-    src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80&auto=format"
-    alt="restaurant interior" />
-  <div class="hero-overlay"></div>
-  <div class="hero-text">
+  <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80&auto=format" alt="" />
+  <div class="hero-fade"></div>
+  <div class="hero-title">
     <h1>Kaybishow House</h1>
     <p>Staff floor plan — live table status</p>
   </div>
   <div class="legend">
-    <div class="legend-item"><span class="dot dot-open"></span>Open</div>
-    <div class="legend-item"><span class="dot dot-booked"></span>Booked</div>
-    <div class="legend-item"><span class="dot dot-filled"></span>Filled</div>
+    <div class="leg"><span class="dot" style="background:#4caf88"></span>Open</div>
+    <div class="leg"><span class="dot" style="background:#7b8fcc"></span>Booked</div>
+    <div class="leg"><span class="dot" style="background:#cc7766"></span>Filled</div>
   </div>
 </div>
 
-<!-- CONTROLS -->
-<div class="controls">
-  <div class="ctrl">
-    <label>Date</label>
-    <input type="date" id="dateInput" />
-  </div>
-  <div class="ctrl">
+<div class="bar">
+  <div class="field"><label>Date</label><input type="date" id="dateEl" /></div>
+  <div class="field">
     <label>Time</label>
-    <select id="timeInput">
+    <select id="timeEl">
+      <option>09:00</option><option>10:00</option><option>11:00</option>
       <option>12:00</option><option>13:00</option><option>14:00</option>
       <option>15:00</option><option>16:00</option><option>17:00</option>
       <option>18:00</option><option>19:00</option><option>20:00</option>
       <option>21:00</option><option>22:00</option>
     </select>
   </div>
-  <button class="refresh-btn" onclick="fetchData()">↻ Refresh</button>
+  <button class="rbtn" onclick="load()">↻ Refresh</button>
 </div>
 
-<!-- MAIN -->
-<div class="main">
-  <!-- FLOOR -->
+<div class="wrap">
   <div class="floor">
-    <div class="sec-label">Floor plan — click any table to toggle</div>
-    <div id="floorPlan"></div>
-  </div>
-
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="stats-grid">
-      <div class="stat">
-        <div class="stat-val" id="statBooked">—</div>
-        <div class="stat-label">Booked today</div>
-      </div>
-      <div class="stat">
-        <div class="stat-val" id="statAvail">—</div>
-        <div class="stat-label">Available now</div>
-      </div>
+    <div class="zone">
+      <div class="zone-label">Window seats</div>
+      <div class="trow" id="zoneWindow"></div>
     </div>
-    <div class="sec-label">Reservations</div>
-    <div class="res-list" id="resList"></div>
+    <div class="zone">
+      <div class="zone-label">Main floor</div>
+      <div class="trow" id="zoneMain"></div>
+    </div>
+    <div class="zone">
+      <div class="zone-label">Private dining</div>
+      <div class="trow" id="zonePrivate"></div>
+    </div>
+  </div>
+  <div class="side">
+    <div class="sgrid">
+      <div class="scard"><div class="snum" id="numBooked">—</div><div class="slbl">Booked today</div></div>
+      <div class="scard"><div class="snum" id="numAvail">—</div><div class="slbl">Available now</div></div>
+    </div>
+    <div class="slabel">Reservations</div>
+    <div class="rlist" id="rlist"></div>
   </div>
 </div>
 
-<!-- LIVE BAR -->
-<div class="livebar">
-  <span class="pulse"></span>
-  <span id="liveText">Connecting...</span>
-</div>
+<div class="lbar"><span class="lpulse"></span><span id="ltext">Loading...</span></div>
 
-<!-- MODAL -->
-<div class="backdrop" id="backdrop" onclick="if(event.target===this)dismissModal()">
-  <div class="modal">
-    <h3 id="modalTitle"></h3>
-    <p id="modalDesc"></p>
-    <div class="modal-btns">
-      <button class="mbtn dismiss" onclick="dismissModal()">Keep it</button>
-      <button class="mbtn cancel-yes" id="confirmBtn" onclick="confirmAction()">Confirm</button>
+<!-- MODAL: sits in normal document flow, no position:fixed -->
+<div class="mwrap" id="mwrap">
+  <div class="mbox">
+    <h3 id="mtitle"></h3>
+    <p id="mdesc"></p>
+    <div class="mbtns">
+      <button class="mbtn no" onclick="closeModal()">Keep it</button>
+      <button class="mbtn yes" id="mconfirm" onclick="doConfirm()">Confirm</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── CONFIG ──
-  const WEBHOOK_GET    = 'https://o595a.app.n8n.cloud/webhook/restaurant-status';
-  const WEBHOOK_POST   = 'https://o595a.app.n8n.cloud/webhook/restaurant-table-update';
-  const WEBHOOK_CANCEL = 'https://o595a.app.n8n.cloud/webhook/restaurant-vapi';
+// ── URLS ──
+const URL_GET    = 'https://o595a.app.n8n.cloud/webhook/restaurant-status';
+const URL_WALKIN = 'https://o595a.app.n8n.cloud/webhook/restaurant-table-update';
+const URL_CANCEL = 'https://o595a.app.n8n.cloud/webhook/restaurant-vapi';
 
-  // ─────────────────────────────────────────────
+// ── STATE ──
+let tables = [], reservations = [], walkIns = [];
+let pending = null;
 
-  let state = { tables: [], reservations: [], walkIns: [] };
-  let pending = null;
+// ── INIT DATE/TIME ──
+const dateEl = document.getElementById('dateEl');
+const timeEl = document.getElementById('timeEl');
+dateEl.value = new Date().toISOString().slice(0,10);
+const h = new Date().getHours();
+const slot = (h < 10 ? '0'+h : ''+h) + ':00';
+for (let o of timeEl.options) if (o.value === slot) { o.selected = true; break; }
+dateEl.onchange = render;
+timeEl.onchange = render;
 
-  // init date/time
-  const dateEl = document.getElementById('dateInput');
-  const timeEl = document.getElementById('timeInput');
-  dateEl.value = new Date().toISOString().slice(0,10);
-  const nowH = new Date().getHours();
-  const nowSlot = (nowH < 10 ? '0'+nowH : nowH) + ':00';
-  for (let o of timeEl.options) { if (o.value === nowSlot) { o.selected = true; break; } }
-  dateEl.onchange = render;
-  timeEl.onchange = render;
-
-  function mins(t) {
-    if (!t) return null;
-    t = String(t).trim();
-    // handle "2:00 PM" / "2:00 AM" format from VAPI
-    const ampm = t.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-    if (ampm) {
-      let h = parseInt(ampm[1]), m = parseInt(ampm[2]);
-      const period = ampm[3].toUpperCase();
-      if (period === 'AM' && h === 12) h = 0;
-      if (period === 'PM' && h !== 12) h += 12;
-      return h * 60 + m;
-    }
-    // handle "14:00" 24hr format
-    const p = t.split(':').map(Number);
-    return (p.length >= 2 && !isNaN(p[0]) && !isNaN(p[1])) ? p[0]*60+p[1] : null;
+// ── TIME HELPERS ──
+// converts "14:00" OR "2:00 PM" to minutes since midnight
+function toMins(t) {
+  if (!t) return null;
+  t = String(t).trim();
+  const ampm = t.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+  if (ampm) {
+    let h = parseInt(ampm[1]), m = parseInt(ampm[2]);
+    const pm = ampm[3].toLowerCase() === 'pm';
+    if (pm && h !== 12) h += 12;
+    if (!pm && h === 12) h = 0;
+    return h * 60 + m;
   }
-  function overlaps(as, ae, bs, be) { return as < be && bs < ae; }
+  const parts = t.split(':').map(Number);
+  if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return parts[0]*60 + parts[1];
+  return null;
+}
 
-  function tableStatus(id, date, time) {
-    const s = mins(time);
-    if (s === null) return 'open';
-    const e = s + 90;
-    const booked = (state.reservations||[]).some(r =>
-      r.status !== 'cancelled' && r.date === date && r.tableId === id &&
-      (os => os !== null && overlaps(s, e, os, os + (r.durationMinutes||90)))(mins(r.time))
-    );
-    if (booked) return 'booked';
-    const filled = (state.walkIns||[]).some(r =>
-      r.status === 'filled' && r.date === date && r.tableId === id &&
-      (os => os !== null && overlaps(s, e, os, os + (r.durationMinutes||90)))(mins(r.time))
-    );
-    return filled ? 'filled' : 'open';
+// do two 90-min slots overlap?
+function overlaps(startA, startB) {
+  // each booking is 90 mins
+  // overlap if |startA - startB| < 90
+  if (startA === null || startB === null) return false;
+  return Math.abs(startA - startB) < 90;
+}
+
+// get status of a table at the selected date+time
+function getStatus(tableId) {
+  const date = dateEl.value;
+  const viewMins = toMins(timeEl.value);
+
+  // check reservations
+  const isBooked = reservations.some(r => {
+    if (r.status === 'cancelled') return false;
+    if (r.tableId !== tableId) return false;
+    if (r.date !== date) return false;
+    return overlaps(viewMins, toMins(r.time));
+  });
+  if (isBooked) return 'booked';
+
+  // check walk-ins
+  const isFilled = walkIns.some(w => {
+    if (w.status !== 'filled') return false;
+    if (w.tableId !== tableId) return false;
+    if (w.date !== date) return false;
+    return overlaps(viewMins, toMins(w.time));
+  });
+  if (isFilled) return 'filled';
+
+  return 'open';
+}
+
+// ── RENDER ──
+function renderZone(zoneId, ids) {
+  const el = document.getElementById(zoneId);
+  const tmap = {};
+  tables.forEach(t => tmap[t.id] = t);
+  el.innerHTML = ids.map(id => {
+    const t = tmap[id];
+    if (!t) return '';
+    const st = getStatus(id);
+    const lbl = st[0].toUpperCase() + st.slice(1);
+    return `<div class="tcard ${st}" onclick="onTable('${id}','${st}')">
+      <div class="tid">${id}</div>
+      <div class="tseat">${t.seats} seats</div>
+      <div class="tbadge">${lbl}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSide() {
+  const date = dateEl.value;
+  const viewMins = toMins(timeEl.value);
+
+  // booked today count
+  const todayBooked = reservations.filter(r => r.date === date && r.status !== 'cancelled').length;
+  document.getElementById('numBooked').textContent = todayBooked;
+
+  // available now count
+  const avail = tables.filter(t => getStatus(t.id) === 'open').length;
+  document.getElementById('numAvail').textContent = avail;
+
+  // reservation list — show ALL, sorted by time
+  const sorted = [...reservations].sort((a,b) => (toMins(a.time)||0) - (toMins(b.time)||0));
+  if (!sorted.length) {
+    document.getElementById('rlist').innerHTML = '<div class="rempty">No reservations yet</div>';
+    return;
   }
+  document.getElementById('rlist').innerHTML = sorted.map(r => {
+    const init = (r.name||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const cancelled = r.status === 'cancelled';
+    return `<div class="ritem${cancelled?' cancelled':''}">
+      <div class="rav">${init}</div>
+      <div class="rinfo">
+        <div class="rname">${r.name||'Guest'}</div>
+        <div class="rmeta">${r.time||''} · ${r.partySize||'?'} pax · ${r.tableId||''} · ${r.date||''}</div>
+      </div>
+      <div class="rtag">${r.source||'vapi'}</div>
+      ${!cancelled ? `<div class="xbtn" onclick="askCancel('${r.id}','${r.name}','${r.tableId}','${r.time}')">✕</div>` : ''}
+    </div>`;
+  }).join('');
+}
 
-  function renderFloor() {
-    const date = dateEl.value, time = timeEl.value;
-    const tMap = {};
-    (state.tables||[]).forEach(t => tMap[t.id] = t);
-    const zones = [
-      { name: 'Window seats',   ids: ['T2-1','T2-2'] },
-      { name: 'Main floor',     ids: ['T4-1','T4-2'] },
-      { name: 'Private dining', ids: ['T6-1','T8-1'] }
+function renderLive() {
+  const date = dateEl.value;
+  const now = new Date().toTimeString().slice(0,8);
+  const count = reservations.filter(r => r.date === date && r.status !== 'cancelled').length;
+  document.getElementById('ltext').textContent = `Live — ${count} reservation(s) on ${date}. Last updated ${now}`;
+}
+
+function render() {
+  renderZone('zoneWindow',  ['T2-1','T2-2']);
+  renderZone('zoneMain',    ['T4-1','T4-2']);
+  renderZone('zonePrivate', ['T6-1','T8-1']);
+  renderSide();
+  renderLive();
+}
+
+// ── LOAD DATA ──
+async function load() {
+  try {
+    const res = await fetch(URL_GET);
+    const raw = await res.json();
+    const d = Array.isArray(raw) ? raw[0] : raw;
+    if (Array.isArray(d.tables))       tables       = d.tables;
+    if (Array.isArray(d.reservations)) reservations = d.reservations;
+    if (Array.isArray(d.walkIns))      walkIns      = d.walkIns;
+  } catch(e) {
+    // fallback so floor plan still shows
+    if (!tables.length) tables = [
+      {id:'T2-1',seats:2},{id:'T2-2',seats:2},
+      {id:'T4-1',seats:4},{id:'T4-2',seats:4},
+      {id:'T6-1',seats:6},{id:'T8-1',seats:8}
     ];
-    let html = '';
-    zones.forEach(z => {
-      html += `<div class="zone"><div class="zone-name">${z.name}</div><div class="tables-row">`;
-      z.ids.forEach(id => {
-        const t = tMap[id]; if (!t) return;
-        const st = tableStatus(id, date, time);
-        const label = st.charAt(0).toUpperCase() + st.slice(1);
-        html += `<div class="table-card ${st}" onclick="onTableClick('${id}','${st}')">
-          <div class="table-id">${id}</div>
-          <div class="table-seats">${t.seats} seats</div>
-          <div class="table-badge">${label}</div>
-        </div>`;
-      });
-      html += '</div></div>';
-    });
-    document.getElementById('floorPlan').innerHTML = html;
   }
+  render();
+}
 
-  function renderSidebar() {
-    const date = dateEl.value, time = timeEl.value;
-    const todayRes = (state.reservations||[]).filter(r => r.date === date && r.status !== 'cancelled');
-    document.getElementById('statBooked').textContent = todayRes.length;
-    const avail = (state.tables||[]).filter(t => tableStatus(t.id, date, time) === 'open').length;
-    document.getElementById('statAvail').textContent = avail;
-
-    const all = [...(state.reservations||[])].sort((a,b) => (a.time||'') > (b.time||'') ? 1 : -1);
-    if (!all.length) {
-      document.getElementById('resList').innerHTML = '<div class="empty">No reservations yet</div>';
-      return;
-    }
-    let html = '';
-    all.forEach(r => {
-      const init = (r.name||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      const cancelled = r.status === 'cancelled';
-      html += `<div class="res-item${cancelled?' cancelled':''}">
-        <div class="avatar">${init}</div>
-        <div class="res-info">
-          <div class="res-name">${r.name||'Guest'}</div>
-          <div class="res-meta">${r.time||''} · ${r.partySize||'?'} pax · ${r.tableId||''}</div>
-        </div>
-        <div class="vapi-tag">${r.source||'vapi'}</div>
-        ${!cancelled ? `<div class="x-btn" title="Cancel reservation" onclick="askCancel('${r.id}','${r.name}','${r.tableId}','${r.time}')">✕</div>` : ''}
-      </div>`;
-    });
-    document.getElementById('resList').innerHTML = html;
+// ── TABLE CLICK ──
+function onTable(id, status) {
+  if (status === 'open') {
+    pending = { type:'fill', id };
+    openModal(`Mark ${id} as filled?`, 'Blocks this slot for walk-in guests.', 'Mark filled');
+  } else if (status === 'filled') {
+    pending = { type:'unfill', id };
+    openModal(`Free table ${id}?`, 'Removes the walk-in block.', 'Free table');
+  } else if (status === 'booked') {
+    // find which reservation is occupying this table right now
+    const date = dateEl.value;
+    const viewMins = toMins(timeEl.value);
+    const r = reservations.find(r =>
+      r.tableId === id && r.date === date &&
+      r.status !== 'cancelled' &&
+      overlaps(viewMins, toMins(r.time))
+    );
+    if (r) askCancel(r.id, r.name, r.tableId, r.time);
   }
+}
 
-  function renderLive() {
-    const now = new Date();
-    const d = now.toISOString().slice(0,10);
-    const t = now.toTimeString().slice(0,8);
-    const total = (state.reservations||[]).filter(r => r.date === d && r.status !== 'cancelled').length;
-    document.getElementById('liveText').textContent =
-      `Live — ${total} reservation(s) on ${d}. Last updated ${t}`;
-  }
+function askCancel(id, name, tableId, time) {
+  pending = { type:'cancel', reservationId: id };
+  openModal(`Cancel ${name}'s reservation?`, `Table ${tableId} at ${time} — this frees the table.`, 'Yes, cancel');
+}
 
-  function render() { renderFloor(); renderSidebar(); renderLive(); }
+// ── MODAL ──
+function openModal(title, desc, btnLabel) {
+  document.getElementById('mtitle').textContent = title;
+  document.getElementById('mdesc').textContent  = desc;
+  document.getElementById('mconfirm').textContent = btnLabel;
+  document.getElementById('mwrap').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('mwrap').classList.remove('show');
+  pending = null;
+}
 
-  async function fetchData() {
-    try {
-      const res = await fetch(WEBHOOK_GET);
-      const raw = await res.json();
-      const d = Array.isArray(raw) ? raw[0] : raw;
-      if (d.tables)       state.tables       = d.tables;
-      if (d.reservations) state.reservations = d.reservations;
-      if (d.walkIns)      state.walkIns      = d.walkIns;
-    } catch(e) {
-      if (!state.tables.length) {
-        state.tables = [
-          {id:'T2-1',seats:2},{id:'T2-2',seats:2},
-          {id:'T4-1',seats:4},{id:'T4-2',seats:4},
-          {id:'T6-1',seats:6},{id:'T8-1',seats:8}
-        ];
-      }
-    }
+async function doConfirm() {
+  if (!pending) return;
+  const snap = {...pending};
+  closeModal();
+
+  if (snap.type === 'cancel') {
+    // optimistic update
+    const r = reservations.find(x => x.id === snap.reservationId);
+    if (r) r.status = 'cancelled';
     render();
-  }
-
-  async function post(body) {
+    showToast('Reservation cancelled ✓');
+    // send to n8n
     try {
-      await fetch(WEBHOOK_POST, {
+      await fetch(URL_CANCEL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ action: 'cancelReservation', reservationId: snap.reservationId })
       });
-    } catch(e) { console.warn('POST failed', e); }
-  }
+    } catch(e) {}
+    // reload after short delay to confirm n8n saved it
+    setTimeout(load, 1500);
 
-  function onTableClick(id, status) {
+  } else if (snap.type === 'fill') {
     const date = dateEl.value, time = timeEl.value;
-    if (status === 'open') {
-      pending = { type: 'fill', id, date, time };
-      openModal(`Mark ${id} as filled?`, 'Blocks this table for walk-in guests at this slot.', 'Mark filled');
-    } else if (status === 'filled') {
-      pending = { type: 'unfill', id, date, time };
-      openModal(`Free table ${id}?`, 'Removes the walk-in block — table becomes available.', 'Free table');
-    } else if (status === 'booked') {
-      const s = mins(time), e = s + 90;
-      const r = (state.reservations||[]).find(r =>
-        r.tableId === id && r.date === date && r.status !== 'cancelled' &&
-        (os => os !== null && overlaps(s, e, os, os+(r.durationMinutes||90)))(mins(r.time))
-      );
-      if (r) askCancel(r.id, r.name, r.tableId, r.time);
-    }
-  }
+    walkIns = walkIns.filter(w => !(w.tableId===snap.id && w.date===date && w.time===time));
+    walkIns.push({ id:'wk_'+Date.now(), tableId:snap.id, date, time, durationMinutes:90, status:'filled', source:'floor-plan', createdAt:new Date().toISOString() });
+    render();
+    showToast(`Table ${snap.id} marked filled`);
+    try {
+      await fetch(URL_WALKIN, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ tableId:snap.id, date, time, status:'filled' })
+      });
+    } catch(e) {}
 
-  function askCancel(id, name, tableId, time) {
-    pending = { type: 'cancel', reservationId: id };
-    openModal(`Cancel ${name}'s reservation?`, `Table ${tableId} at ${time} will be freed immediately.`, 'Yes, cancel');
+  } else if (snap.type === 'unfill') {
+    const date = dateEl.value, time = timeEl.value;
+    walkIns = walkIns.filter(w => !(w.tableId===snap.id && w.date===date && w.time===time && w.source==='floor-plan'));
+    render();
+    showToast(`Table ${snap.id} freed ✓`);
+    try {
+      await fetch(URL_WALKIN, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ tableId:snap.id, date, time, status:'open' })
+      });
+    } catch(e) {}
   }
+}
 
-  async function confirmAction() {
-    if (!pending) return;
-    const snap = Object.assign({}, pending);
-    closeModal();
-    const { type } = snap;
+// ── TOAST ──
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
 
-    if (type === 'cancel') {
-      const r = (state.reservations||[]).find(x => x.id === snap.reservationId);
-      if (r) r.status = 'cancelled';
-      render();
-      toast('Reservation cancelled ✓');
-      try {
-        await fetch(WEBHOOK_CANCEL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'cancelReservation', reservationId: snap.reservationId })
-        });
-      } catch(e) { console.warn('cancel failed', e); }
-      setTimeout(fetchData, 1200);
-    } else if (type === 'fill') {
-      const { id, date, time } = snap;
-      state.walkIns = (state.walkIns||[]).filter(w => !(w.tableId===id && w.date===date && w.time===time));
-      state.walkIns.push({ id:'block_'+Date.now(), tableId:id, date, time, durationMinutes:90, status:'filled', source:'floor-plan', createdAt:new Date().toISOString() });
-      render();
-      toast(`Table ${id} marked filled`);
-      await post({ tableId: id, date, time, status: 'filled' });
-    } else if (type === 'unfill') {
-      const { id, date, time } = snap;
-      state.walkIns = (state.walkIns||[]).filter(w => !(w.tableId===id && w.date===date && w.time===time && w.source==='floor-plan'));
-      render();
-      toast(`Table ${id} freed ✓`);
-      await post({ tableId: id, date, time, status: 'open' });
-    }
-  }
-
-  function openModal(title, desc, confirmLabel) {
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('modalDesc').textContent  = desc;
-    document.getElementById('confirmBtn').textContent = confirmLabel;
-    document.getElementById('backdrop').classList.add('on');
-  }
-  function closeModal() {
-    document.getElementById('backdrop').classList.remove('on');
-    pending = null;
-  }
-  function dismissModal() {
-    document.getElementById('backdrop').classList.remove('on');
-    pending = null;
-  }
-  function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg; el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2600);
-  }
-
-  fetchData();
-  setInterval(fetchData, 30000);
+// ── START ──
+load();
+setInterval(load, 30000);
 </script>
 </body>
 </html>
